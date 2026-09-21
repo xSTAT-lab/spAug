@@ -1,0 +1,85 @@
+dataset: Kidney
+task: sample_disease_prediction
+raw_root: data/01_raw/Kidney
+interim_path: data/02_interim/sample_disease_prediction/Kidney/kidney_samples.h5ad
+splits_path: data/02_interim/sample_disease_prediction/Kidney/splits.csv
+generated_root: data/03_synthetic/sample_disease_prediction/Kidney
+
+SRTsim:
+  model_type: statistical_simulation
+  has_coords: true
+  sim_scheme: tissue
+  min_nonzero: 2
+  maxiter: 500
+  n_generate_ratio: 1.0
+  random_seed: 42
+
+Splatter:
+  model_type: regional_negative_binomial
+  has_coords: true
+  n_regions: 7
+  region_method: spatial_kmeans
+  min_region_size: 20
+  dispersion_min: 0.01
+  dispersion_max: 1000000.0
+  dropout_match: true
+  library_size_match: true
+  coord_sigma_factor: 0.15
+  n_generate_ratio: 1.0
+  random_seed: 42
+
+SPARsim:
+  model_type: regional_sparsim
+  has_coords: true
+  n_regions: 7
+  region_method: spatial_kmeans
+  min_region_size: 20
+  dispersion_min: 0.01
+  dispersion_max: 1000000.0
+  dropout_quantile: 0.99
+  coord_sigma_factor: 0.12
+  n_generate_ratio: 1.0
+  random_seed: 42
+
+scGAN:
+  model_type: gan
+  has_coords: false
+  latent_dim: 128
+  conditional_gan: true
+  condition_dim: 32
+  gen_hidden: [256, 512]
+  dis_hidden: [512, 256]
+  lr_gen: 0.0002
+  lr_dis: 0.0002
+  n_critic: 5
+  lambda_gp: 10.0
+  use_lsn: false
+  lr_decay: false
+  lr_final: null
+  epochs: 500
+  batch_size: 128
+  n_generate_ratio: 1.0
+
+scDiffusion:
+  model_type: diffusion
+  has_coords: false
+  n_timesteps: 1000
+  beta_schedule: linear
+  hidden_dim: [512, 512, 256, 128]
+  classifier_hidden_dim: [512, 512, 256, 128]
+  lr: 0.0001
+  epochs: 1000
+  batch_size: 128
+  use_vae: true
+  vae_latent_dim: 128
+  vae_epochs: 200
+  vae_lr: 0.0005
+  vae_hidden_dim: [1024, 1024, 1024]
+  postprocess_gene_quantile: 0.999
+  postprocess_library_quantile: 0.995
+  n_generate_ratio: 1.0
+
+global:
+  random_seed: 42
+  device: cuda
+  use_hvg: true

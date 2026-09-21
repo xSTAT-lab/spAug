@@ -1,0 +1,33 @@
+# Runtime dependencies for the complete spAug workflow.
+
+# Scientific computing
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# Single-cell and spatial transcriptomics
+anndata>=0.10.0
+scanpy>=1.9.0
+leidenalg>=0.10.0
+scikit-misc>=0.3.0
+
+# Machine learning
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+
+# Deep learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Spatial analysis
+libpysal>=4.9.0
+esda>=2.5.0
+
+# Visualisation
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Utilities
+PyYAML>=6.0
+tqdm>=4.65.0
+h5py>=3.9.0

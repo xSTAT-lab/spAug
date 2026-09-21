@@ -1,0 +1,37 @@
+# ============================================================
+# DLPFC within-slice low-label spot prediction configuration
+# ============================================================
+
+supervised_low_label:
+  dataset: DLPFC
+  label_fraction: 0.50
+  seeds: [42, 43, 44]
+  classifiers: ["LR", "XGBoost", "MLP"]
+
+  paradigms:
+    real_baseline:
+      enabled: true
+    global_real_plus_synthetic:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    global_synthetic_only:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    weighted_erm_package:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+      alphas: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    regional_weighted_erm_package:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+      # alpha is the upper bound of the regional alpha profile; the code assigns an independent alpha from real training-region density.
+      alphas: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    local_spatial:
+      ratios: [1, 2, 3, 4]
+
+  pca_n_components: 50
+  metrics: ["accuracy", "balanced_accuracy", "macro_f1", "weighted_f1", "mcc"]
+
+global:
+  random_seed: 42
+  n_jobs: 4
+  synthetic_root: "data/03_synthetic/supervised_low_label/DLPFC"
+  results_dir: "data/05_results/supervised_low_label/DLPFC"
+  summary_dir: "data/05_results/summary/supervised_low_label/DLPFC"
+  figures_dir: "data/05_results/figures/supervised_low_label/DLPFC"

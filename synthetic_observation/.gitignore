@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Local data and generated artifacts
+data/*
+!data/README.md
+!data/.gitkeep
+*.h5ad
+*.h5
+*.mtx
+*.loom
+*.rds
+*.csv
+*.tsv
+*.parquet
+models/
+logs/
+results/
+diagnostics/
+checkpoints/
+outputs/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Local configuration
+.env
+*.local.yaml
+*.local.yml

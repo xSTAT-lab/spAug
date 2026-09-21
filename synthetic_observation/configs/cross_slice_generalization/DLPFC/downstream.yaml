@@ -1,0 +1,50 @@
+# ============================================================
+# DLPFC cross-slice spot-label prediction configuration
+# ============================================================
+
+cross_slice_generalization:
+  dataset: DLPFC
+  split_tag: fixed_8train_4test
+  split_tags:
+    - fixed_8train_4test
+    - split_seed43_8train_4test
+    - split_seed44_8train_4test
+  synthetic_pool_split_tag: all_slices_pool
+  synthetic_usage_policy: "pre-generate every slice, but each split only uses train-slice synthetic pools"
+  random_seed: 42
+  train_slices: ["151507", "151508", "151509", "151510", "151669", "151670", "151671", "151672"]
+  test_slices: ["151673", "151674", "151675", "151676"]
+  extra_splits:
+    split_seed43_8train_4test:
+      train_slices: ["151507", "151509", "151669", "151671", "151673", "151674", "151675", "151676"]
+      test_slices: ["151508", "151510", "151670", "151672"]
+    split_seed44_8train_4test:
+      train_slices: ["151508", "151510", "151670", "151672", "151673", "151674", "151675", "151676"]
+      test_slices: ["151507", "151509", "151669", "151671"]
+  classifiers: ["LR", "XGBoost", "MLP"]
+
+  paradigms:
+    real_baseline:
+      enabled: true
+    global_real_plus_synthetic:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    global_synthetic_only:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    weighted_erm_package:
+      ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+      objective: "(1-alpha)*mean(real_loss)+alpha*mean(synthetic_loss)"
+      alphas: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+    local_spatial:
+      ratios: [1, 2, 3, 4]
+      ratio_role: "per-region ratio vector with max ratio"
+
+  pca_n_components: 50
+  metrics: ["accuracy", "balanced_accuracy", "macro_f1", "weighted_f1", "mcc"]
+
+global:
+  random_seed: 42
+  n_jobs: 4
+  synthetic_root: "data/03_synthetic/cross_slice_generalization/DLPFC"
+  results_dir: "data/05_results/cross_slice_generalization/DLPFC"
+  summary_dir: "data/05_results/summary/cross_slice_generalization/DLPFC"
+  figures_dir: "data/05_results/figures/cross_slice_generalization/DLPFC"

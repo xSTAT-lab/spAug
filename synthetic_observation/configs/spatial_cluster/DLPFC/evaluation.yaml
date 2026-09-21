@@ -1,0 +1,108 @@
+# ============================================================
+# Evaluation metric configuration
+# ============================================================
+
+# ----- Intrinsic fidelity evaluation -----
+intrinsic:
+  sampling:
+    sample_size: 2000              # maximum paired real/synthetic sample size; avoid evaluating the full 40x pool
+
+  # gene-expression distribution similarity
+  jsd:
+    name: "Jensen-Shannon Divergence"
+    # evaluation dimensions
+    compute_per_gene: true         # per-gene JSD
+    compute_global: true           # global expression-distribution JSD
+    n_bins: 50                     # number of histogram bins
+    pseudocount: 1e-8              # avoid log(0)
+
+  # spatial autocorrelation preservation
+  morans_i:
+    name: "Moran's I"
+    # gene set to evaluate
+    eval_hvg: true                 # Moran's I for highly variable genes
+    eval_specific_genes: []        # optional explicit gene list
+    n_top_genes: 100               # use the top-N HVGs
+    # spatial weight matrix
+    weight_method: "knn"           # knn / distance
+    weight_k: 6
+
+  data_properties:
+    # SpatialSimBench-style expression summaries computed by intrinsic_metrics.py
+    metrics:
+      - library_size_log_ratio
+      - library_size_wasserstein
+      - fraction_zero_delta
+      - mean_gene_mean_abs_diff
+      - mean_gene_var_abs_diff
+      - gene_mean_correlation
+      - gene_variance_correlation
+    direction:
+      library_size_log_ratio: "abs_lower"
+      library_size_wasserstein: "lower"
+      fraction_zero_delta: "abs_lower"
+      mean_gene_mean_abs_diff: "lower"
+      mean_gene_var_abs_diff: "lower"
+      gene_mean_correlation: "higher"
+      gene_variance_correlation: "higher"
+
+  spatial_properties:
+    metrics:
+      - mean_morans_i_real
+      - mean_morans_i_synthetic
+      - morans_i_abs_diff
+    direction:
+      morans_i_abs_diff: "lower"
+
+# ----- Downstream task evaluation -----
+downstream:
+  classification:
+    metrics:
+      - macro_f1
+      - weighted_f1
+      - accuracy
+    average_method: "macro"
+
+  clustering:
+    metrics:
+      - ari                        # Adjusted Rand Index
+      - nmi                        # Normalized Mutual Information
+    # label alignment
+    label_alignment: "hungarian"   # align cluster labels with ground truth using the Hungarian algorithm
+
+# ----- Reporting settings -----
+reporting:
+  output_format: "csv"             # csv / json
+  save_per_run: true               # save each run separately
+  aggregate: true                  # aggregate multiple runs
+  n_decimal: 4                     # decimal places
+  benchmark_summary_dir: "data/05_results/summary/spatial_cluster/DLPFC/benchmark"
+  figures_dir: "data/05_results/figures/spatial_cluster/DLPFC"
+  ranking:
+    normalize_within_metric: true
+    intrinsic_lower_is_better:
+      - global_jsd
+      - mean_gene_jsd
+      - median_gene_jsd
+      - pca_centroid_distance
+      - pca_mmd_rbf
+      - library_size_log_ratio
+      - library_size_wasserstein
+      - fraction_zero_delta
+      - mean_gene_mean_abs_diff
+      - mean_gene_var_abs_diff
+      - morans_i_abs_diff
+    intrinsic_higher_is_better:
+      - gene_mean_correlation
+      - gene_variance_correlation
+    downstream_higher_is_better:
+      - accuracy
+      - macro_f1
+      - weighted_f1
+      - ari
+      - nmi
+      - delta_accuracy
+      - delta_macro_f1
+      - delta_weighted_f1
+      - delta_ari
+      - delta_nmi

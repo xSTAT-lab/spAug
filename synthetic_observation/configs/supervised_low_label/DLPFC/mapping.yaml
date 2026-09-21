@@ -1,0 +1,49 @@
+# ============================================================
+# Coordinate assignment configuration
+# Applies to coordinate-free generators (scDiffusion, scGAN)
+# ============================================================
+
+# ----- Experiment: KNN similarity mapping -----
+knn_mapping:
+  k: 10                            # number of KNN neighbors
+  metric: "cosine"                 # distance metric: cosine / euclidean / correlation
+  # feature-space selection
+  feature_source: "hvg"            # hvg: use HVG expression features / pca: use PCA features
+  pca_n_components: 50             # used only when feature_source=pca
+  # coordinate aggregation
+  aggregation: "mean"              # mean: mean coordinates of the top-K neighbors / weighted: similarity-weighted mean
+
+# ----- Default: sample and perturb real training coordinates within the same slice and label -----
+label_spatial_perturbation:
+  sigma_factor: 0.08               # perturbation standard deviation = per-axis std of real training coordinates for the same label x sigma_factor
+  min_sigma: 1.0e-6
+  random_seed: 42
+
+# ----- Control baseline 1: spatial random perturbation -----
+spatial_perturbation:
+  # Add Gaussian noise after KNN mapping
+  base_method: "knn_mapping"       # apply KNN mapping, then perturb
+  sigma_factor: 1.0                # perturbation standard deviation = mean physical distance between real spots x sigma_factor
+  random_seed: 42
+  # collision detection
+  check_overlap: true              # check whether synthetic spots overlap real spots
+  min_distance_ratio: 0.5          # minimum distance = mean spacing x ratio,resample below this value
+  max_resample: 10                 # maximum resampling attempts
+
+# ----- Control baseline 2: Gaussian mixture model (GMM) sampling -----
+gmm_sampling:
+  n_components: 10                 # number of GMM components
+  covariance_type: "full"          # full / diag / spherical / tied
+  # sampling strategy
+  sampling_mode: "low_density"     # low_density: prefer low-density regions / uniform: uniform sampling
+  density_threshold: 0.3           # low-density threshold (low_density mode only)
+  random_seed: 42
+  # post-processing
+  snap_to_tissue: false            # project sampled points onto the tissue boundary
+
+# ----- global coordinate settings -----
+coordinate_system:
+  # ensure all coordinates use a (n_spots, 2) NumPy array
+  # stored in adata.obsm['spatial']
+  coord_key: "spatial"             # coordinate key in obsm
+  flip_y: false                    # whether to flip the y axis (some datasets use a different orientation)

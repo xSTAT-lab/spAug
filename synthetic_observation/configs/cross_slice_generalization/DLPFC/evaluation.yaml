@@ -1,0 +1,10 @@
+intrinsic:
+  sampling:
+    sample_size: 2000
+
+reporting:
+  output_format: "csv"
+  save_per_run: true
+  aggregate: true
+  benchmark_summary_dir: "data/05_results/summary/cross_slice_generalization/DLPFC"
+  figures_dir: "data/05_results/figures/cross_slice_generalization/DLPFC"

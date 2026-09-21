@@ -1,0 +1,10 @@
+preprocessing:
+  DLPFC:
+    output_dir: data/02_interim/common/DLPFC
+    min_genes_per_spot: 200
+    min_cells_per_gene: 5
+    n_top_genes: 3000
+    use_logcounts: true
+    hvg: true
+    load_combined: false
+    filter_nan_labels: true

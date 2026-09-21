@@ -1,0 +1,51 @@
+# Generator capability registry used by paradigm construction and reporting.
+
+SRTsim:
+  family: "spatial_simulation"
+  uses_expression: true
+  uses_spatial: true
+  uses_image_features: false
+  native_spatial_output: true
+  condition_capable: false
+  default_condition_source: "label_wise_generation"
+  default_coord_source: "native_or_reference_pattern"
+
+Splatter:
+  family: "rna_seq_region_splatter"
+  uses_expression: true
+  uses_spatial: true
+  uses_image_features: false
+  native_spatial_output: true
+  condition_capable: false
+  default_condition_source: "label_wise_generation"
+  default_coord_source: "simadaptor_region_resampling"
+
+SPARsim:
+  family: "rna_seq_region_sparsim"
+  uses_expression: true
+  uses_spatial: true
+  uses_image_features: false
+  native_spatial_output: true
+  condition_capable: false
+  default_condition_source: "label_wise_generation"
+  default_coord_source: "simadaptor_region_resampling"
+
+scGAN:
+  family: "rna_seq_gan"
+  uses_expression: true
+  uses_spatial: false
+  uses_image_features: false
+  native_spatial_output: false
+  condition_capable: true
+  default_condition_source: "internal_cscgan_embedding_or_label_wise_generation"
+  default_coord_source: "label_spatial_perturbation"
+
+scDiffusion:
+  family: "diffusion"
+  uses_expression: true
+  uses_spatial: false
+  uses_image_features: false
+  native_spatial_output: false
+  condition_capable: true
+  default_condition_source: "classifier_guidance_or_label_wise_generation"
+  default_coord_source: "label_spatial_perturbation"

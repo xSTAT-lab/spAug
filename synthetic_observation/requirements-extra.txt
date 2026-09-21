@@ -1,0 +1,2 @@
+# Optional dependency for the scDesign3/Vine-Copula generator path.
+pyvinecopulib>=0.7.0

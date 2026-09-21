@@ -1,0 +1,17 @@
+dataset: Kidney
+task: sample_disease_prediction
+prediction_root: data/05_results/sample_disease_prediction/Kidney
+evaluation_root: data/05_results/summary/sample_disease_prediction/Kidney
+figures_root: data/05_results/figures/sample_disease_prediction/Kidney
+
+positive_label: SCCRCC
+baseline_model: baseline
+baseline_paradigm: real_baseline
+
+intrinsic:
+  reference_path: data/02_interim/sample_disease_prediction/Kidney/kidney_samples.h5ad
+  synthetic_root: data/03_synthetic/sample_disease_prediction/Kidney
+  output: data/05_results/summary/sample_disease_prediction/Kidney/intrinsic_metrics.csv
+  sampling:
+    sample_size: 2000
+  workers: 12

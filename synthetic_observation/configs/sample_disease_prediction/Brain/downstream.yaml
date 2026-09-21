@@ -1,0 +1,30 @@
+dataset: Brain
+task: sample_disease_prediction
+interim_path: data/02_interim/sample_disease_prediction/Brain/brain_samples.h5ad
+splits_path: data/02_interim/sample_disease_prediction/Brain/splits.csv
+generated_root: data/03_synthetic/sample_disease_prediction/Brain
+prediction_root: data/05_results/sample_disease_prediction/Brain
+positive_label: EPM
+
+models: [SRTsim, Splatter, SPARsim, scGAN, scDiffusion]
+classifiers: [LR, XGBoost, MLP]
+paradigms:
+  - real_baseline
+  - global_real_plus_synthetic
+  - global_synthetic_only
+  - weighted_erm_package
+
+ratios: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+alphas: [0, 0.2, 0.4, 0.6, 0.8, 1]
+n_pcs: 30
+feature_quantiles: [0.1, 0.5, 0.9]
+random_seed: 42
+use_gpu: auto
+n_jobs: 4
+
+quick:
+  classifiers: [LR]
+  paradigms: [real_baseline, global_real_plus_synthetic, weighted_erm_package]
+  ratios: [1]
+  alphas: [0, 0.5]
+  max_folds: 2
