@@ -1,0 +1,18 @@
+dataset: Brain
+task: sample_disease_prediction
+interim_path: data/02_interim/sample_disease_prediction/Brain/brain_samples.h5ad
+splits_path: data/02_interim/sample_disease_prediction/Brain/splits.csv
+prediction_root: data/05_results/sample_disease_prediction/Brain
+positive_label: EPM
+classifiers:
+- LR
+- XGBoost
+- MLP
+n_pcs: 30
+feature_quantiles:
+- 0.1
+- 0.5
+- 0.9
+random_seed: 42
+use_gpu: auto
+n_jobs: 4

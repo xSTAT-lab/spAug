@@ -18,27 +18,26 @@ It runs in two stages.
   Stage 2 (``--stage embed``)
       Run a frozen PFM over every patch and cache the per-spot embeddings.
 
-The PFM implementations and weights are deliberately *not* redistributed here, because
-each checkpoint carries its own licence (several are gated). This script expects a
-``models`` package on ``PYTHONPATH`` exposing::
+PFM implementations and weights are supplied locally under their providers' terms.
+The extraction environment provides a ``models`` package exposing::
 
     get_model(name, device, n_gpu) -> torch.nn.Module
     get_custom_transformer(name)   -> torchvision-style transform
 
-with ``name`` in ``{"GPFM", "uni", "gigapath", "uni2_h"}``. See ``README.md`` for the
-checkpoints used and how to obtain them.
+with ``name`` in ``{"GPFM", "uni", "gigapath", "uni2_h"}``.
+See ``feature/README.md`` for the registry interface and cache layout.
 
 Examples
 --------
 DLPFC: crop patches once, then embed with all four PFMs::
 
-    python extract_pfm_embeddings.py --dataset dlpfc --data-dir /path/to/DLPFC --stage patches
-    python extract_pfm_embeddings.py --dataset dlpfc --data-dir /path/to/DLPFC \\
+    python extract_pfm_embeddings.py --dataset dlpfc --data-dir data/DLPFC --stage patches
+    python extract_pfm_embeddings.py --dataset dlpfc --data-dir data/DLPFC \\
         --stage embed --models gpfm uni gigapath uni2_h
 
 HEST: patches are supplied as HDF5 files, so only the embedding stage applies::
 
-    python extract_pfm_embeddings.py --dataset hest --data-dir /path/to/HEST \\
+    python extract_pfm_embeddings.py --dataset hest --data-dir data/HEST \\
         --stage embed --models gpfm
 """
 
@@ -72,10 +71,9 @@ def load_model_api():
         from models import get_model, get_custom_transformer
     except ImportError as exc:  # pragma: no cover - depends on the user's environment
         raise SystemExit(
-            "Could not import the `models` package required for PFM inference.\n"
-            "This release does not redistribute the PFM implementations or weights.\n"
-            "See README.md for the four checkpoints and where to obtain them, then put\n"
-            "the matching `models` package on PYTHONPATH."
+            "PFM inference requires a locally supplied `models` package.\n"
+            "Install a registry exposing get_model and get_custom_transformer, and\n"
+            "configure its model weights. See feature/README.md for the interface."
         ) from exc
     return get_model, get_custom_transformer
 
@@ -136,13 +134,14 @@ def crop_dlpfc_patches(data_dir: Path, radius: int, slices=None) -> None:
         spot = adata[adata.obs["sample_id"].astype(str) == sid]
         positions = pd_read_positions(data_dir / "pilot" / sid / "tissue_positions_list.txt")
         positions = positions.loc[spot.obs_names]
-        # columns 4 and 5 hold the pixel (col, row) of each spot
-        coords = np.stack((positions[4].values, positions[5].values), axis=1)
+        # Zero-based columns 4 and 5 store pixel row and column, respectively.
+        coords = np.stack((positions[5].values, positions[4].values), axis=1)
 
         wsi = data_dir / "wsis" / f"{sid}_full_image.tif"
         if not wsi.exists():
             raise SystemExit(f"missing H&E image: {wsi}")
-        full_img = np.array(Image.open(wsi))
+        with Image.open(wsi) as image:
+            full_img = np.array(image.convert("RGB"))
         height, width = full_img.shape[:2]
 
         patches = []
@@ -154,7 +153,8 @@ def crop_dlpfc_patches(data_dir: Path, radius: int, slices=None) -> None:
                 patch = np.zeros((patch_size, patch_size, 3), dtype=np.uint8)
                 sx1, sx2 = max(0, x1), min(width, x2)
                 sy1, sy2 = max(0, y1), min(height, y2)
-                patch[sy1 - y1 : sy2 - y1, sx1 - x1 : sx2 - x1] = full_img[sy1:sy2, sx1:sx2]
+                if sx1 < sx2 and sy1 < sy2:
+                    patch[sy1 - y1 : sy2 - y1, sx1 - x1 : sx2 - x1] = full_img[sy1:sy2, sx1:sx2]
             else:
                 patch = full_img[y1:y2, x1:x2]
             # keep the (H, W, 1, C) layout used by the cached pickles

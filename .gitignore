@@ -1,32 +1,59 @@
-# Python
+# Python and notebook state
 __pycache__/
 *.py[cod]
 *.egg-info/
 .pytest_cache/
-
-# Jupyter
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 .ipynb_checkpoints/
-*.ipynb_checkpoints
 
-# Data and generated outputs (not redistributed)
-data/
-/synthetic/
-feature/outputs/
+# Local environments and configuration
+.venv/
+venv/
+env/
+.env
+.env.*
+*.local.yaml
+*.local.yml
+*.pem
+*.key
+
+# Local data and experiment artifacts
+/data/
+/feature/data/
+/syn/data/*
+!/syn/data/README.md
+!/syn/data/.gitkeep
+outputs/
+results/
+logs/
+checkpoints/
+diagnostics/
 *.h5ad
 *.h5
+*.hdf5
 *.zarr/
-*.csv.gz
+*.mtx
+*.loom
+*.rds
 *.parquet
-
-# Logs and checkpoints
+*.csv
+*.tsv
+*.csv.gz
 *.log
 *.ckpt
 *.pt
 *.pth
 *.pkl
 *.pickle
+*.safetensors
+*.tif
+*.tiff
 
-# Editor / OS
+# Editor and operating system state
 .DS_Store
 .vscode/
 .idea/
+*.swp

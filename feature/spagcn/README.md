@@ -1,59 +1,46 @@
-# SpaGCN (adapted)
+# SpaGCN graph integration
 
-This directory holds the graph convolutional network behind the **PFM Graph
-Integration** strategy of the feature-level route.
+This directory contains adapted SpaGCN code used by the feature augmentation
+module. The package retains the original [MIT License](LICENSE).
 
-It is adapted from SpaGCN by Jian Hu, originally released at
-<https://github.com/jianhuupenn/SpaGCN> under the MIT License (see `LICENSE`). It also
-carries the `image_feature` strategy introduced by spEMO, reimplemented here (see below).
-Please cite both works:
+## Attribution
 
-> Hu, J., Li, X., Coleman, K. et al. SpaGCN: Integrating gene expression, spatial
-> location and histology to identify spatial domains and spatially variable genes by
-> graph convolutional network. *Nature Methods* 18, 1342–1351 (2021).
+SpaGCN source: <https://github.com/jianhuupenn/SpaGCN>.
 
-> Liu, T., Huang, T., Ding, T. et al. Leveraging multi-modal foundation models for
-> analysing spatial multi-omic and histopathology data. *Nature Biomedical Engineering*
-> (2025). <https://doi.org/10.1038/s41551-025-01602-6>
-> Code: <https://github.com/HelloWorldLTY/spEMO>
+Hu, J., Li, X., Coleman, K. et al. SpaGCN: Integrating gene expression, spatial
+location and histology to identify spatial domains and spatially variable
+genes by graph convolutional network. *Nature Methods* 18, 1342-1351 (2021).
 
-## What was changed
+The `image_feature` strategy is attributed to spEMO:
+<https://github.com/HelloWorldLTY/spEMO>.
 
-`calculate_adj.py` gains an `image_feature` argument on `calculate_adj_matrix`. The
-argument follows the `image_feature` strategy introduced by spEMO, reimplemented here rather
-than copied: the per-spot scale is computed as
-`embedding.sum(axis=1, dtype=np.float32) / embedding.shape[1]`, which is numerically
-identical to spEMO's `np.mean(data, axis=1)` on the same float32 embeddings. When
-`image_feature` is supplied, the histology-derived axis `z` of the adjacency matrix is
-scaled spot by spot with that per-spot scale:
+Liu, T., Huang, T., Ding, T. et al. Leveraging multi-modal foundation models for
+analysing spatial multi-omic and histopathology data. *Nature Biomedical
+Engineering* (2025). DOI: 10.1038/s41551-025-01602-6.
+
+## Graph mechanism
+
+`calculate_adj_matrix` accepts an `image_feature` embedding cache. Each spot's
+scale is computed from its float32 embedding:
 
 ```python
+spot_scale = embedding.sum(axis=1, dtype=np.float32) / embedding.shape[1]
 z = z * spot_scale
 ```
 
-That is the only behavioural change: it lets a pathology foundation model take the place
-of the image statistics that would otherwise determine the axis on their own. The
-original implementation is kept, commented out, at the end of `calculate_adj.py`. The
-reimplementation was checked on DLPFC section 151507 (4,226 spots) with the GPFM embedding:
-the resulting adjacency matrix is bit-identical to the previous code (`np.array_equal` is
-true, with 0 differing elements).
+Here `z` is the histology-derived adjacency axis. The PFM embedding therefore
+influences graph connectivity. The supplied integration script uses expression
+features for the graph nodes. `SpaGCN.train` also exposes an optional
+`image_emb` argument for experiments with concatenated node features.
 
-The PFM embeddings loaded through this argument are our own artefacts, produced by the
-extraction script in this repository (`../scripts/extract_pfm_embeddings.py`) following the
-spEMO recipe; no embeddings are taken from spEMO.
+## Workflow
 
-`SpaGCN.train` also accepts an optional `image_emb` argument that would append the
-embeddings to the PCA node features. **The reported experiments do not use it**: the node
-features remain the expression matrix, and the PFM representation acts through the graph
-rather than through the node representation. Any extension that does pass `image_emb`
-would change the model class and is not covered by the numbers in the manuscript.
+[run_spagcn_integration.py](../scripts/run_spagcn_integration.py) constructs the
+adjacency matrix, searches scale and resolution parameters, trains SpaGCN,
+applies hexagonal refinement, and writes per-slice labels for the
+[spatial clustering notebook](../notebooks/feature_spatial_cluster.ipynb).
 
-## Usage
-
-`../scripts/run_spagcn_integration.py` drives this package end to end for the DLPFC
-slices: it builds the adjacency matrix with the PFM embeddings, searches the `l` and
-resolution hyperparameters, trains the model, post-processes with hexagonal refinement,
-and writes `pkl/spagcn_refined/<tag>_r<radius>_update_adj_multi.pkl` for
-`../notebooks/feature_spatial_cluster.ipynb`.
-
-This package needs `numba`, `scanpy`, `torch`, `scikit-learn` and `matplotlib`.
+Generate embeddings with
+[extract_pfm_embeddings.py](../scripts/extract_pfm_embeddings.py), following
+the [feature setup guide](../README.md). Runtime dependencies are included in
+[feature/requirements.txt](../requirements.txt).

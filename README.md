@@ -1,76 +1,119 @@
-# spAug — Anonymous Code Release
+# spAug
 
-This repository is the **feature-level augmentation** part of the release. It augments the
-measured spot / sample representation with frozen pathology-foundation-model (PFM)
-embeddings (GPFM, UNI, UNI2-h, GigaPath) and compares them against the expression-only PCA
-baseline on four downstream task families:
+spAug provides two complementary routes for spatial transcriptomics data
+augmentation: synthetic observations and pathology image features. Both routes
+support spatial clustering, within-slice low-label prediction, cross-slice
+prediction, and sample-level disease prediction.
 
-1. spatial clustering (DLPFC),
-2. within-slice low-label prediction (DLPFC),
-3. cross-slice prediction (DLPFC),
-4. sample-level disease prediction (Kidney, Bowel, Brain).
+## Modules
 
-The **synthetic-observation** route (generated observations from SRTsim, Splatter, SPARsim,
-scGAN and scDiffusion) is not included in this release and is provided separately. A few
-downstream utilities that both routes share — the classifiers, the PCA/PCA+embedding feature
-transforms, the DLPFC preprocessing and the PCA-spatial Leiden backend — live with that
-route, so the notebooks here add them to `sys.path` at the top (see
-[`feature/README.md`](feature/README.md)).
+| Module | Purpose | Guide |
+| --- | --- | --- |
+| `syn/` | Generate synthetic spots with SRTsim, Splatter, SPARsim, scGAN, and scDiffusion; assign coordinates, construct training paradigms, and evaluate downstream tasks | [Synthetic-observation guide](syn/README.md) |
+| `feature/` | Extract frozen pathology foundation model embeddings and evaluate feature fusion or SpaGCN graph integration | [Feature guide](feature/README.md) |
 
-> This is an anonymized release prepared for double-blind review. Author names,
-> affiliations, and absolute local paths have been removed.
+Each module contains its own code, configurations, dependencies, data paths,
+and checks. Each directory can be copied and used independently.
 
-## Layout
+## Installation
 
-```text
-.
-├── requirements.txt            # exported run environment (Python 3.10, torch 2.6 cu124)
-└── feature/                    # feature-level (PFM) route
-    ├── README.md               # detailed usage: embeddings, SpaGCN, notebooks
-    ├── notebooks/              # task alignment and fusion experiments
-    ├── scripts/                # PFM embedding extraction, SpaGCN graph integration
-    └── spagcn/                 # adapted SpaGCN (Hu et al. 2021, MIT)
-```
-
-## Quick start
+Use Python 3.10 or newer. From the repository root:
 
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-Python 3.10 is required; `requirements.txt` is the export of the environment in which the
-reported runs were produced. Neither the PFM checkpoints nor the raw data are redistributed —
-see [`feature/README.md`](feature/README.md) for the checkpoints, the expected data layout
-and the step-by-step instructions.
+The root requirements combine both modules. For synthetic-observation workflows
+alone, use `syn/requirements.txt`. Feature dependencies, including Jupyter and
+Louvain clustering, are declared in `feature/requirements.txt`. The optional
+Vine-Copula dependency is in `syn/requirements-extra.txt`.
 
-## Contents
+For environment provenance, the feature module also provides a
+[recorded CUDA 12.4 environment](feature/environments/cuda124.txt). The root
+requirements provide the portable installation path. Select PyTorch and GPU
+packages appropriate for your hardware when reproducing a specific GPU run.
 
-| Path | Role |
-|---|---|
-| `feature/scripts/extract_pfm_embeddings.py` | crop per-spot H&E patches, cache frozen PFM embeddings |
-| `feature/scripts/run_spagcn_integration.py` | PFM-scaled SpaGCN graph integration |
-| `feature/spagcn/` | adapted SpaGCN (Hu et al. 2021) with a reimplementation of the spEMO `image_feature` strategy (Liu et al. 2025) |
-| `feature/notebooks/feature_spatial_cluster.ipynb` | PFM concatenation vs. PCA baseline, fusion grid |
-| `feature/notebooks/feature_low_label_classification.ipynb` | within-slice low-label prediction |
-| `feature/notebooks/feature_cross_slice_classification.ipynb` | cross-slice prediction |
-| `feature/notebooks/feature_disease_prediction.ipynb` | sample-level disease prediction |
+## Getting started
 
-Outputs are written under `feature/outputs/`.
+Run synthetic-observation commands from `syn/`, following its module guide:
 
-## Data
+```bash
+cd syn
+python src/check_environment.py --help
+```
 
-Raw data are not redistributed. The four task families use:
+From the repository root, launch the feature notebooks:
 
-| Task | Dataset | Source |
-|---|---|---|
-| spatial clustering, low-label, cross-slice | DLPFC (12 sections; donors Br5292, Br5595, Br8100) | Maynard et al., *Nature Neuroscience* 2021 |
-| sample-level disease prediction | Kidney | public spatial-transcriptomics cohort |
-| sample-level disease prediction | Bowel | public spatial-transcriptomics cohort |
-| sample-level disease prediction | Brain (EPM/Cancer + spatialLIBD/Healthy) | EPM study + spatialLIBD |
+```bash
+python -m jupyter lab feature/notebooks
+```
 
-## Documentation
+Each notebook locates the feature module and imports its local
+`src/spaug_feature/` package. Its configuration and data paths are module-local.
 
-- [`feature/README.md`](feature/README.md) — environment, data layout, PFM embedding
-  extraction, SpaGCN graph integration, the notebooks, data splits and parameters, outputs.
-- [`feature/spagcn/README.md`](feature/spagcn/README.md) — the exact modification applied to
-  SpaGCN and the citations (SpaGCN, spEMO).
+Feature extraction requires locally supplied PFM weights and a Python model
+registry providing `get_model` and `get_custom_transformer`. The
+[feature guide](feature/README.md#model-registry-and-weights) specifies this
+interface and the embedding cache layout. Precomputed embedding caches can be
+used directly by the feature notebooks.
+
+## Data and outputs
+
+Provide data locally in accordance with the dataset access terms. The feature
+route uses `feature/data/DLPFC/` and `feature/data/HEST/`; synthetic
+workflows use `syn/data/`. See the [data contract](syn/docs/data_contract.md)
+and [synthetic data layout](syn/data/README.md). The feature notebooks read
+prepared data from `feature/data/02_interim/`. The feature guide includes an
+independent DLPFC preparation command.
+
+Generated feature results are written to `feature/outputs/`; synthetic results
+follow the task-specific layout under `syn/data/`. Git ignore rules cover local
+data, model weights, environments, credentials, and generated artifacts.
+
+## Validation
+
+From the repository root:
+
+```bash
+python scripts/check_public_repo.py
+python syn/scripts/check_generator_entrypoint_contracts.py
+python -m unittest discover -s tests -v
+```
+
+With runtime dependencies installed:
+
+```bash
+python scripts/check_public_repo.py --with-mechanisms
+python scripts/check_feature_setup.py
+python syn/scripts/check_deep_generator_task_cli_smoke.py
+```
+
+The static checks cover both modules, notebook syntax and metadata, local
+links, and portable paths. Runtime checks use synthetic fixtures, standalone
+feature setup cells, and numerical workflows. Full scientific experiments
+require the selected datasets,
+embedding caches or model weights, configurations, and recorded runtime versions.
+
+## Repository layout
+
+```text
+syn/                    synthetic-observation code, configurations, and module guides
+feature/                feature notebooks, extraction scripts, and adapted SpaGCN
+scripts/                repository and feature integration checks
+tests/                  repository validation
+.github/workflows/      automated static checks
+requirements.txt        combined runtime dependencies
+LICENSE                 license for project-owned code
+THIRD_PARTY_NOTICES.md   third-party attribution and license scope
+CITATION.cff            software citation metadata
+```
+
+## License and citation
+
+Project-owned code is distributed under the [MIT License](LICENSE).
+[Third-party notices](THIRD_PARTY_NOTICES.md) describe the scope of bundled
+software and model dependencies. Citation metadata is provided in
+[CITATION.cff](CITATION.cff).

@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+title: "spAug: Spatial Transcriptomics Data Augmentation"
+message: "Please cite this software when using spAug."
+type: software
+version: 0.1.0
+authors:
+  - name: "spAug contributors"
+license: MIT

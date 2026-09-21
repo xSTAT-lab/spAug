@@ -7,10 +7,8 @@ adjacency matrix, where it scales the histology-derived axis spot by spot. Spot
 expression features remain the node features of the graph convolutional network,
 followed by deep embedded clustering.
 
-The PFM representation therefore enters through the *graph* rather than through the node
-representation -- that is what separates this strategy from plain PCA concatenation, and
-it is why the resulting ARI/NMI values are reported separately from the shared
-PCA-spatial Leiden backend.
+The PFM representation influences graph connectivity, and the expression matrix
+provides node features for this integration workflow.
 
 For every DLPFC slice and every requested PFM, the script writes the refined labels the
 clustering notebook loads::
@@ -22,7 +20,7 @@ labels, aligned with ``adata.obs_names`` of ``<data-dir>/st/<slice>_adata.h5ad``
 
 Example
 -------
-    python run_spagcn_integration.py --data-dir /path/to/DLPFC \\
+    python run_spagcn_integration.py --data-dir data/DLPFC \\
         --models gpfm uni gigapath uni2_h --radius 112
 """
 
@@ -39,8 +37,7 @@ import torch
 
 from PIL import Image
 
-# Full-resolution H&E slides exceed Pillow's default decompression-bomb threshold; a
-# slide above twice the default would raise instead of warn.
+# Allow the full-resolution H&E images used by this workflow.
 Image.MAX_IMAGE_PIXELS = 7793202000
 
 # The SpaGCN implementation shipped next to this script (feature/spagcn/).
@@ -104,7 +101,7 @@ def run_slice(
     y_pixel = adata.obsm["spatial"][:, 1].tolist()
 
     # Adjacency from pixel coordinates plus a histology-derived axis, whose per-spot
-    # scaling is set by the frozen PFM embedding rather than by image statistics alone.
+    # scaling incorporates the frozen PFM embedding.
     adj = spg.calculate_adj_matrix(
         x=x_pixel,
         y=y_pixel,
