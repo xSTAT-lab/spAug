@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data and generated outputs (not redistributed)
+data/
+/synthetic/
+feature/outputs/
+*.h5ad
+*.h5
+*.zarr/
+*.csv.gz
+*.parquet
+
+# Logs and checkpoints
+*.log
+*.ckpt
+*.pt
+*.pth
+*.pkl
+*.pickle
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
