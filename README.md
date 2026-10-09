@@ -1,5 +1,8 @@
 # spAug
 
+> Cheng, M., Wang, R., & Wang, L. (2026). spAug: Understanding Complementary Augmentation Strategies for Spatial Transcriptomics. Statistical Learning and Data Science Section D. https://openreview.net/forum?id=vSsi8P1jEe
+
+
 spAug provides two complementary routes for spatial transcriptomics data
 augmentation: synthetic observations and pathology image features. Both routes
 support spatial clustering, within-slice low-label prediction, cross-slice
